@@ -81,6 +81,7 @@ public class DBConnector {
 			this.createConnection();
 		}
 		try {
+			System.out.println( DBConnector.connections_created_amount + ":" + DBConnector.connections_closed_amount);
 			s = (Statement) c.createStatement();
 		} catch (SQLException e) {
 			throw new MyAllException( StaticValues.SQLTips.StatementError1 + e.getMessage());
@@ -101,8 +102,8 @@ public class DBConnector {
 	static String url = "jdbc:mysql://localhost:3306/";
 	static String db_account = "root";
 	static String db_password = "";
-	static long connections_created_amount = 0; 
-	static long connections_closed_amount = 0; 
+	public static long connections_created_amount = 0; 
+	public static long connections_closed_amount = 0; 
 	public DBConnector createConnection( boolean parallelConnection) throws MyAllException {
 		this.setParallel(parallelConnection);
 		this.createConnection();
@@ -125,12 +126,14 @@ public class DBConnector {
 				c = (Connection) DriverManager.getConnection( using_db, db_account, db_password);
 			} catch (SQLException e) {
 				error_code = StaticValues.SQLTips.StatementError5 + e.getMessage();
+				connectSuccess = false;
 			}
 		}
-		connections_created_amount++;
 		if( connectSuccess == false) {
 			this.closeConnection();
 			throw new MyAllException( error_code);
+		} else {
+			connections_created_amount++;
 		}
 	}
 	private void closeConnection() throws MyAllException {
@@ -168,8 +171,9 @@ public class DBConnector {
 				if( null == single_line) {
 					break;
 				}
+				single_line = single_line.replaceAll(" ", "");
 				int indexOfEq = single_line.indexOf("=");
-				if( indexOfEq != -1) {
+				if( indexOfEq == -1) {
 					error_code = StaticValues.FileTips.FileError3;
 					initSuccess = false;
 				}
